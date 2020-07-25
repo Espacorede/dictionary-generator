@@ -1,0 +1,46 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1 0 auto;
+    margin-top: 6%;
+}
+
+.superdupertitle {
+    padding-bottom: 15px;
+}
+
+.button-small {
+    font-size: 0.8rem;
+    height: 3rem;
+    line-height: 3rem;
+    padding: 0 1.5rem;
+}
+
+pre {
+    padding: 10px;
+    font-size: 12px;
+    line-height: 15px;
+}
+
+footer {
+    flex-shrink: 0;
+    text-align: center;
+    padding: 3px;
+}
+
+#output-area,
+#fuzzy-area {
+    display: none;
+}
+
+#fuzzy-area {
+    margin-top: 7%;
+}
