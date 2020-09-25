@@ -27,15 +27,19 @@
             <div class="column">
                 <button id="searchString" class="button" onclick="searchByString()">
                     Search by String
-                    (recommended)
+                    (exact match)
                 </button>
                 <button id="searchToken" class="button button-outline" onclick="searchByToken()">
                     Search by Token
                 </button>
-                <!--
-                <button id="searchFuzzy" class="button button-outline" onclick="searchFuzzy()">
-                    Fuzzy Search
-                </button>-->
+                <label for="searchmode">Selected file</label>
+                <select id="searchmode">
+                    <option value="tf">tf</option>
+                    <option value="proto">tf_proto_obj_defs</option>
+                    <option value="proto2">tf_proto_obj_defs (contract name helper / token only!!)</option>
+                    <option value="proto3">tf_proto_obj_defs (contract objective helper / token only!!)</option>
+                </select>
+
             </div>
         </div>
 

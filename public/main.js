@@ -48,32 +48,32 @@ function cleanString(s, language) {
     return string;
 }
 
-function findToken(string) {
-    return Object.keys(languageData.english).find(key => languageData.english[key] === string);
+function findToken(string, file) {
+    return Object.keys(languageData[file].english).find(key => languageData[file].english[key] === string);
 }
 
-function findString(language, token, noEscape = false) {
+function findString(file, language, token, noEscape = false) {
     if (noEscape) {
-        return languageData[language][token];
+        return languageData[file][language][token];
     }
 
-    if (languageData[language][token]) {
-        return cleanString(languageData[language][token], language);
+    if (languageData[file][language][token]) {
+        return cleanString(languageData[file][language][token], language);
     }
 }
 
-function getTranslationsByString(string) {
-    return getTranslationsByToken(findToken(string));
+function getTranslationsByString(string, file) {
+    return getTranslationsByToken(findToken(string, file), file);
 }
 
-function getTranslationsByToken(token) {
-    if (findString("english", token, true)) {
+function getTranslationsByToken(token, file) {
+    if (findString(file, "english", token, true)) {
         const translations = {};
-        let dicEntry = `${findString("english", token, true).toLowerCase()}:\n  en: ${findString("english", token)}\n`;
+        let dicEntry = `${findString(file, "english", token, true).toLowerCase()}:\n  en: ${findString(file, "english", token)}\n`;
 
-        for (const language of languages) {
-            if (language !== "english" && findString(language, token) !== undefined) {
-                translations[langCodes[language]] = findString(language, token);
+        for (const language of languageFiles[file]) {
+            if (language !== "english" && findString(file, language, token) !== undefined) {
+                translations[langCodes[language]] = findString(file, language, token);
             }
         }
 
@@ -88,7 +88,17 @@ function getTranslationsByToken(token) {
 function searchByToken(token = $("#search").val(), source) {
     $("#output-area").fadeIn();
 
-    const output = getTranslationsByToken(token);
+    const mode = $("#searchmode").val();
+    let output;
+    if (mode === "proto") {
+        output = getTranslationsByToken(token, "tf_proto_obj_defs");
+    } else if (mode === "proto2") {
+        output = getTranslationsByToken(`${token.replace(/ /g, "_")} { field_number: 4 }`, "tf_proto_obj_defs");
+    } else if (mode === "proto3") {
+        output = getTranslationsByToken(`${token.replace(/ /g, "_")} { field_number: 2 }`, "tf_proto_obj_defs");
+    } else {
+        output = getTranslationsByToken(token, "tf");
+    }
 
     if (output !== undefined) {
         $("#output").text(output);
@@ -97,62 +107,25 @@ function searchByToken(token = $("#search").val(), source) {
             $("#fuzzy-area").fadeOut();
         }
     } else {
-        $("#output").html("No tokens found. <!--<a href=\"#\" onclick=\"searchFuzzy()\">Try fuzzy search</a>?-->");
+        $("#output").html("No tokens found!");
     }
 }
 
 function searchByString() {
     $("#output-area").fadeIn();
 
-    const output = getTranslationsByString($("#search").val());
+    let output;
+
+    if ($("#searchmode").val() !== "tf") {
+        output = getTranslationsByString($("#search").val(), "tf_proto_obj_defs");
+    } else {
+        output = getTranslationsByString($("#search").val(), "tf");
+    }
 
     if (output !== undefined) {
         $("#output").text(output);
     } else {
-        $("#output").html("No tokens found. <!--<a href=\"#\" onclick=\"searchFuzzy()\">Try fuzzy search</a>?-->");
-    }
-}
-
-function searchFuzzy() {
-    const fuzzyData = Object.keys(languageData.english).map(function (key) {
-        return {
-            token: key,
-            string: languageData.english[key]
-        };
-    });
-
-    const options = {
-        shouldSort: true,
-        includeScore: true,
-        keys: [{
-            name: "token",
-            weight: 0.3
-        }, {
-            name: "string",
-            weight: 0.7
-        }]
-    };
-
-    const fuse = new Fuse(fuzzyData, options);
-
-    if (fuse.search($("#search").val()).length !== 0) {
-        $("#fuzzy-table").text("");
-        for (const i of fuse.search($("#search").val())) {
-            $("#fuzzy-table").append(`
-            <tr>
-            <td>${cleanString(i.item.string)}</td>
-            <td>${i.score}</td>
-            <td>
-                <input class="button button-clear" onclick="searchByToken('${i.item.token}', 'fuzzy')" value="Use this one pls">
-            </td>
-            </tr>
-        `);
-        }
-
-        $("#fuzzy-area").fadeIn();
-    } else {
-        $("#output-area").fadeIn();
-        $("#output").text("No strings nor tokens found. You're out of luck.");
+        $("#output").html(`No strings found on ${$("#searchmode").val()}.`);
     }
 }
 
@@ -163,39 +136,73 @@ function copyOutput() {
 }
 
 // Fim das funções
+const languageFiles = {
+    tf: [
+        "brazilian",
+        // "bulgarian",
+        "czech",
+        "danish",
+        "dutch",
+        "english",
+        "finnish",
+        "french",
+        "german",
+        // "greek",
+        "hungarian",
+        "italian",
+        "japanese",
+        "korean",
+        // "koreana",
+        // "latam",
+        "norwegian",
+        // "pirate",
+        "polish",
+        "portuguese",
+        "romanian",
+        "russian",
+        "schinese",
+        "spanish",
+        "swedish",
+        "tchinese",
+        // "thai",
+        "turkish"
+        // "ukrainian",
+        // "vietnamese"
+    ],
+    tf_proto_obj_defs: [
+        "brazilian",
+        // "bulgarian",
+        "czech",
+        "danish",
+        "dutch",
+        "english",
+        "finnish",
+        "french",
+        "german",
+        // "greek",
+        "hungarian",
+        "italian",
+        // "japanese",
+        "korean",
+        // "koreana",
+        // "latam",
+        "norwegian",
+        // "pirate",
+        "polish",
+        "portuguese",
+        "romanian",
+        "russian",
+        "schinese",
+        "spanish",
+        "swedish",
+        "tchinese",
+        // "thai",
+        "turkish"
+        // "ukrainian",
+        // "vietnamese"
+    ]
+};
 
-const languages = [
-    "brazilian",
-    // "bulgarian",
-    "czech",
-    "danish",
-    "dutch",
-    "english",
-    "finnish",
-    "french",
-    "german",
-    // "greek",
-    "hungarian",
-    "italian",
-    "japanese",
-    "korean",
-    // "koreana",
-    // "latam",
-    "norwegian",
-    // "pirate",
-    "polish",
-    "portuguese",
-    "romanian",
-    "russian",
-    "schinese",
-    "spanish",
-    "swedish",
-    "tchinese",
-    // "thai",
-    "turkish"
-    // "ukrainian",
-    // "vietnamese"
-];
 const langCodes = {
     arabic: "ar", // No official support
     brazilian: "pt-br",
@@ -211,7 +218,7 @@ const langCodes = {
     italian: "it",
     japanese: "ja",
     korean: "ko",
-    koreana: "ka", // Copy of "ko"
+    koreana: "ka", // Localization test file for korean
     latam: "es-latam",
     norwegian: "no",
     pirate: "en-pirate",
@@ -228,10 +235,16 @@ const langCodes = {
     ukrainian: "uk", // https://wiki.tf/d/2097829
     vietnamese: "vi" // https://wiki.tf/d/2097829
 };
-const languageData = [];
 
-for (const file of languages) {
-    loadLangFile(file, function (response) {
-        languageData[file] = response.data;
-    });
+const languageData = {
+    tf: [],
+    tf_proto_obj_defs: []
+};
+
+for (const f in languageFiles) {
+    for (const l of languageFiles[f]) {
+        loadLangFile(`${f}_${l}`, function (response) {
+            languageData[f][l] = response.data;
+        });
+    }
 }
